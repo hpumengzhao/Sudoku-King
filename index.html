@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" type="text/css" href="sudoku.css" />
+		<title>SudokuKing</title>
+	</head>
+	<body>
+		<div id="header">
+			<div id="maintitle">
+				<a id="title">SudokuKing</a>
+			</div>
+		</div>
+		<div id="body">
+			<div id="about">
+				<div id="about-head">
+					<h2><a style="color: white">关于数独</a></h2>				
+				</div>
+				<div id="content">
+				数独（shù dú）是源自18世纪瑞士的一种数学游戏。是一种运用纸、笔进行演算的逻辑游戏。玩家需要根据9×9盘面上的已知数字，推理出所有剩余空格的数字，并满足每一行、每一列、每一个粗线宫（3*3）内的数字均含1-9，不重复 。数独盘面是个九宫，每一宫又分为九个小格。在这八十一格中给出一定的已知数字和解题条件，利用逻辑和推理，在其他的空格上填入1-9的数字。使1-9每个数字在每一行、每一列和每一宫中都只出现一次，所以又称“九宫格”。
+				</div>
+			</div>
+			<div id="container">
+				<div id="choose">
+					<div id="level">
+						<button id="level1" onclick="">入门级</button>
+					</div>
+					<div id="level">
+						<button id="level2" onclick="">初级</button>
+					</div>
+					<div id="level">
+						<button id="level3" onclick="">中级</button>
+					</div>
+					<div id="level">
+						<button id="level4" onclick="">高级</button>
+					</div>
+				</div>
+				<div id="footer">
+					<button id="submit">提交</button>
+					<button id="clean">清除</button>
+				</div>
+			</div>
+			<div id="aboutit">
+				<div id="contents">
+					<h2>关于SudokuKing</h2>
+				</div>
+				<div id="contents2">
+					<a style="color: red">数独是利用拉斯维加斯算法生成的，不保证有唯一解。</a>
+					<br><br>
+					<a id="time"></a>
+				</div>
+			</div>
+		</div>
+		<div id="foot">
+			<a href="">Author: Codancer</a>
+		</div>
+	</body>
+	<script type="text/javascript">
+		var board,r,c,b;
+		var body=document.getElementById("container");
+		for(var i=0;i<9;i++){// generate 81 inputs 
+			for(var j=0;j<9;j++){
+				var input=document.createElement("input");
+				input.setAttribute("type", "text");
+				input.className="input";
+				input.id="input_"+i+j;
+				var k=Math.floor(i/3)*3+Math.floor(j/3);
+				if(k%2==0){
+					input.style.border="2px solid red";
+				}else{
+					input.style.border="2px solid blue";
+				}
+
+				input.style.top=60+i*45+"px";
+				input.style.left=53+j*45+"px";
+				var obj=body.append(input);
+			}
+		}
+		function init_sudoku(){
+			board=new Array(10);//board[i][j] is the number
+			r=new Array(10);//r[i][j] is 1 if j is on row i
+			c=new Array(10);//c[i][j] is 1 if j is on column i
+			b=Array(10);//b[i][j] is 1 if j is on block i
+			for(var i=0;i<9;i++){
+					r[i]=new Array(10);
+					c[i]=new Array(10);
+					b[i]=new Array(10);
+					board[i]=new Array(10);
+			}
+			for(var i=0;i<9;i++){
+				for(var j=1;j<=9;j++){//init all Arrays//
+					r[i][j]=0;
+					c[i][j]=0;
+					b[i][j]=0;
+					board[i][j-1]=0;
+				}
+			}
+			for(var i=0;i<9;i++){
+				for(var j=0;j<9;j++){
+					var cell=document.getElementById("input_"+i+j);
+					cell.value=0;
+					cell.disabled=""
+				}
+			}
+		}
+		var solutions;
+		function dfs(board,r,c,b){
+			for(var i=0;i<9;i++){
+				for(var j=0;j<9;j++){
+					if(board[i][j]==0){
+						k=Math.floor(i/3)*3+Math.floor(j/3);
+						for(var num=1;num<=9;num++){
+							if(!r[i][num]&&!c[j][num]&&!b[k][num]){
+								r[i][num]=1;
+								c[j][num]=1;
+								b[k][num]=1;
+								board[i][j]=num;
+								if(dfs(board,r,c,b)){
+									return true;
+								}
+								r[i][num]=0;//rollback
+								c[j][num]=0;
+								b[k][num]=0;
+								board[i][j]=0;
+							}
+						}
+						return false;
+					}
+				}
+			}
+			solutions+=1;
+			return true;
+		}
+		function LasVegas(n){//choose n cells and put a integer in [1,9]
+			solutions=0;
+			for(var i=0;i<9;i++){
+				for(var j=1;j<=9;j++){//init all Arrays//
+					r[i][j]=0;
+					c[i][j]=0;
+					b[i][j]=0;
+					board[i][j-1]=0;
+				}
+			}
+			while(n){
+				x=Math.ceil(Math.random()*10)-1;
+				y=Math.ceil(Math.random()*10)-1;
+				if(x<0||y<0||x>=9||y>=9) continue;
+				if(board[x][y]==0){
+					k=Math.floor(x/3)*3+Math.floor(y/3);// k is the id of blocks
+					var number = Math.ceil(Math.random()*10);
+					if(number<=0) continue;
+					if(!r[x][number]&&!c[y][number]&&!b[k][number]){
+						board[x][y]=number;
+						r[x][number]=1;
+						c[y][number]=1;
+						b[k][number]=1;
+						--n;
+					}
+				}
+			}
+			if(dfs(board,r,c,b)){
+				return true;
+			}
+			else{
+				return false;
+			}
+		}
+		function Rand(n,m){//generate a number in [n,m]
+			var all=new Array();
+			for(var i=n;i<=m;i++){
+				all.push(i);
+			}
+			return all[Math.ceil(Math.random()*(m-n+1))-1];
+		}
+		function generate_sudoku(level){//generate sudoku puzzle due to the level
+			while(!LasVegas(11));// run LasVegas Algorithm until the board is legal;
+			for(var i=0;i<9;i++){
+				for(var j=0;j<9;j++){
+					var cell=document.getElementById("input_"+i+j);
+					cell.value=board[i][j];
+				}
+			}
+			if(level==1){
+				//empty=0;
+				empty=Rand(10,20);
+			}
+			if(level==2){
+				empty=Rand(21,30);
+			}
+			if(level==3){
+				empty=Rand(31,40);
+			}
+			if(level==4){
+				empty=Rand(41,50);
+			}
+			while(empty){
+				x=Math.ceil(Math.random()*10)-1;
+				y=Math.ceil(Math.random()*10)-1;
+				if(x<0||y<0||x>=9||y>=9) continue;
+				if(x>=2){
+					var a=x-1;
+					var b=x-2;
+					if(document.getElementById("input_"+a+y).value==''&&document.getElementById("input_"+b+y).value==null) continue;
+				}
+				if(y>=2){
+					var a=y-1;
+					var b=y-2;
+					if(document.getElementById("input_"+x+a).value==''&&document.getElementById("input_"+y+b).value==null) continue;
+				}				
+				var cell=document.getElementById("input_"+x+y);
+				if(cell.value==''||cell.value==undefined||cell.value==null) continue;
+				cell.value=null;
+				--empty;
+			}
+			for(var i=0;i<9;i++){
+				for(var j=0;j<9;j++){
+					var cell=document.getElementById("input_"+i+j);
+					if(cell.value!=''&&cell.value!=undefined&&cell.value!=null){
+						cell.disabled="disabled";
+					}
+				}
+			}
+		}
+		function check_sudoku(){//check the sudoku
+			maze=new Array(10);
+			for(var i=0;i<10;i++){
+				maze[i]=new Array(10);
+			}
+			var ok=1;
+			for(var i=0;i<9;i++){//transform it to an array
+				for(var j=0;j<9;j++){
+					var cell=document.getElementById("input_"+i+j);
+					if(cell.value<=0||cell.value>9){//out if range
+						return false;
+					}
+					if(cell.value==undefined||cell.value==''||cell.value==null){//null 
+						return false;
+					}
+					maze[i][j]=cell.value;
+				}
+			}
+			for(var i=0;i<9;i++){//each line
+				for(var j=0;j<9;j++){
+					for(var k=0;k<9;k++){
+						if(j!=k&&maze[i][j]==maze[i][k]){
+							return false;
+						}
+					}
+				}
+			}
+			for(var j=0;j<9;j++){//each column
+				for(var i=0;i<9;i++){
+					for(var k=0;k<9;k++){
+						if(i!=k&&maze[i][j]==maze[k][j]){
+							return false;
+						}
+					}
+				}
+			}
+			for(var i=0;i<9;i+=3){
+				for(var j=0;j<9;j+=3){//each block
+					all=new Array();
+					for(var r=0;r<=2;r++){
+						for(var d=0;d<=2;d++){
+							all.push(maze[i+r][j+d]);
+						}
+					}
+					for(var r=0;r<9;r++){
+						for(var d=0;d<9;d++){
+							if(r!=d&&all[r]==all[d]){
+								 return false;
+							}
+						}
+					}
+				}
+			}
+			return true;
+		}
+		function show(level){
+			init_sudoku();
+			generate_sudoku(level);
+		}
+		show(1);
+		document.getElementById("level1").onclick=function(){
+			show(1);
+		}
+		document.getElementById("level2").onclick=function(){
+			show(2);
+		}
+		document.getElementById("level3").onclick=function(){
+			show(3);
+		}
+		document.getElementById("level4").onclick=function(){
+			show(4);
+		}
+		document.getElementById("submit").onclick=function(){
+			if(check_sudoku()){
+				alert("Correct");
+			}else{
+				alert("Wrong Answer");
+			}
+		}
+		document.getElementById("clean").onclick=function(){
+			for(var i=0;i<9;i++){
+				for(var j=0;j<9;j++){
+					var cell=document.getElementById("input_"+i+j);
+					if(!cell.disabled){
+						cell.value=null;
+					}
+				}
+			}
+		}
+		function gettime(){
+			var myDate = new Date();
+			var mytime=myDate.toLocaleTimeString(); //获取当前时间
+			var times=document.getElementById("time");
+			times.innerHTML="Time: "+mytime;
+				 window.setTimeout("gettime()", 1000);
+		}
+		gettime();
+	</script>
+</html>
